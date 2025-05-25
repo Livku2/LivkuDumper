@@ -1,0 +1,6 @@
+[submodule "app/src/main/cpp/Dobby"]
+	path = app/src/main/cpp/Dobby
+	url = https://github.com/LSPosed/Dobby.git
+[submodule "app/src/main/cpp/KittyMemory"]
+	path = app/src/main/cpp/KittyMemory
+	url = https://github.com/MJx0/KittyMemory
