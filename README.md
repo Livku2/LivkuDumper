@@ -4,6 +4,7 @@ A Runtime Dumper For Android Il2Cpp Games
 
 # Features
 Thread Check Detection
+
 Easily Configurable
 
 # Setup
