@@ -1,0 +1,57 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.livku.livkudumpergui'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
+    buildFeatures {
+        aidl false
+        viewBinding false
+        buildConfig false
+    }
+}
+
+afterEvaluate {
+    android.libraryVariants.forEach { variant ->
+        def variantCapped = variant.name.capitalize()
+        def variantLowered = variant.name.toLowerCase()
+
+        // Windows
+        def strippedLibs = file("$buildDir/intermediates/stripped_native_libs/$variantLowered/out/lib")
+        if (!strippedLibs.exists() || !strippedLibs.directory) {
+            // Linux
+            strippedLibs = file("$buildDir/intermediates/stripped_native_libs/${variant.name}/out/lib")
+        }
+
+        tasks.register("copyOutputNative${variantCapped}", Sync) {
+            dependsOn("assemble$variantCapped")
+            from(strippedLibs) {
+                include "**/*.so"
+            }
+            into file("$buildDir/outputs/native/${variant.name}")
+        }
+
+        variant.assembleProvider.get().finalizedBy("copyOutputNative${variantCapped}")
+    }
+}
