@@ -22,6 +22,7 @@ const-string v0, "LivkuDumper"
 invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
 ```
 It should look something like this
+
 ![image](https://github.com/user-attachments/assets/9a98c40a-5712-4184-a40e-b4d2dec291aa)
 
 5. Recompile the apk
