@@ -59,6 +59,7 @@ namespace Il2Cpp{
         EXPORT_FUNCTION(void, il2cpp_field_static_set_value, (void * field, void *value));
         EXPORT_FUNCTION(bool, il2cpp_class_is_enum, (const void * klass));
         EXPORT_FUNCTION(void, il2cpp_field_set_value_object, (void * instance, void * field, void * value));
+        EXPORT_FUNCTION(void*, il2cpp_class_get_parent, (void * klass));
     }// Symbols namespace
 }// Il2Cpp namespace
 
@@ -115,15 +116,17 @@ namespace Globals{
     size_t assemblyCount;
     const void ** assemblies;
     vector<const void*> manualImages;
-    int callsBeforeLoad = 200;
+    int callsBeforeLoad = 127;
     int callCount = 0;
+    bool hasDumped = false;
 }
 enum manualType{
     classCallCount,
     imageCallCount
 };
 namespace Config{
-    manualType CallCountType = manualType::classCallCount;
+    manualType CallCountType = manualType::imageCallCount;
+    bool separateDumps = false;
 }
 
 
@@ -276,7 +279,7 @@ string DumpMethods(const void* klass){
         output << "\t\t// VA: 0x" << std::hex << va
                << " | RVA: 0x" << std::hex << offset << "\n\t\t"
                << getMethodModifier(flags) << fixedName << " "
-               << methodName << "(" << args << ")" << "\n\t\t{ \n \n \t\t} \n \n";
+               << methodName << "(" << args << ")" << " {\t} \n \n";
     }
     return output.str();
 }
@@ -299,9 +302,19 @@ string DumpImage(const void* image){
             type = "class ";
         }
 
+        auto parent = Il2Cpp::Symbols::il2cpp_class_get_parent(const_cast<void*>(klass));
+        bool hasParent = (parent != nullptr);
+
+
         output <<
         "namespace " << namespaze << "\n{\n" <<
-        "\t" << type << name << "\n\t{\n" <<
+        "\t" << type << name;
+
+        if(hasParent){
+            output << " : " << Il2Cpp::Symbols::il2cpp_class_get_name(parent);
+        }
+
+        output << "\n\t{\n" <<
         methods << fields <<
         "\t}\n" <<
         "}\n";
@@ -357,6 +370,9 @@ void DumpThread(){
         stringstream imagesStream;
         stringstream dumpStream;
 
+        imagesStream << "Game Has Thread Check: " << InternalSettings::gameHasThreadCheck << "\n";
+        imagesStream << "Game Requires Manual Assemblies: " << InternalSettings::useManualAssemblies << "\n\n";
+
         LOGI("ASSEMBLY COUNT: %i", Globals::assemblyCount);
 
         for(int i = 0; i < Globals::assemblyCount; ++i){
@@ -389,34 +405,29 @@ void DumpThread(){
 void* (*ClassFromName)(const void*, const char*, const char*) = nullptr;
 void* ClassFromNameHook(const void* image, const char* namespaze, const char* name){
 
-    if(InternalSettings::useManualAssemblies){
-        if(!count(Globals::manualImages.begin(), Globals::manualImages.end(), image)){
+    if (InternalSettings::useManualAssemblies) {
+        if (!count(Globals::manualImages.begin(), Globals::manualImages.end(), image)) {
             Globals::manualImages.push_back(image);
             Globals::assemblyCount++;
 
-
-            if(Config::CallCountType == manualType::imageCallCount)
+            if (Config::CallCountType == manualType::imageCallCount)
                 Globals::callCount++;
         }
 
-        if(Config::CallCountType == manualType::classCallCount)
+        if (Config::CallCountType == manualType::classCallCount)
             Globals::callCount++;
 
         LOGI("Call Count: %i", Globals::callCount);
 
-        if(Globals::callCount >= Globals::callsBeforeLoad) goto loadThread;
-
-
-        goto end;
+        if (Globals::callCount == Globals::callsBeforeLoad && !Globals::hasDumped) {
+            Globals::hasDumped = true;
+            DumpThread();
+        }
+        return ClassFromName(image, namespaze, name);
     }
 
-    loadThread:
-
     DumpThread();
-
-    end:
-
-    ClassFromName(image, namespaze, name);
+    return ClassFromName(image, namespaze, name);
 }
 
 void InitThreadCheckBypass(){
