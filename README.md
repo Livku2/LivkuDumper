@@ -2,6 +2,12 @@
 
 A Runtime Dumper For Android Il2Cpp Games
 
+# PLEASE READ
+Don't create an issue saying "It didn't get every assembly" or "It didn't dump everything"
+Some games rename their symbols such as il2cpp_domain_get_assemblies
+This dumper has an automatic work-around to this, however it needs to be configured properly
+If you really want it to work everytime, stop being lazy and find the renamed symbol yourself before complaining to me
+
 # Features
 Thread Check Detection
 
