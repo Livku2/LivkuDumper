@@ -306,8 +306,10 @@ string DumpImage(const void* image){
         bool hasParent = (parent != nullptr);
 
 
+        output << "//" << Il2Cpp::Symbols::il2cpp_image_get_name(image);
+
         output <<
-        "namespace " << namespaze << "\n{\n" <<
+        "\n" << "namespace " << namespaze << "\n{\n" <<
         "\t" << type << name;
 
         if(hasParent){
