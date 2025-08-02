@@ -110,7 +110,7 @@ string GenerateCPPTypeName(const char* typeName){
 }
 
 namespace InternalSettings{
-    bool gameHasThreadCheck = true;
+    bool gameHasThreadCheck;
     bool useManualAssemblies;
 }
 namespace Globals{
