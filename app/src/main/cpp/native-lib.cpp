@@ -10,6 +10,7 @@
 #include "sstream"
 #include "unistd.h"
 #include "KittyMemory/KittyMemory/KittyInclude.hpp"
+#include "il2cpp-symbols.hpp"
 
 using namespace std;
 
@@ -23,43 +24,44 @@ ProcMap map;
 void* GetExportFunction(const char* handle, const char* function){
     return dlsym(dlopen(handle, RTLD_LAZY), function);
 }
-#define EXPORT_FUNCTION(return_type, name, params) \
-    inline return_type (*name) params = (return_type (*) params) GetExportFunction("libil2cpp.so", #name);
+#define EXPORT_FUNCTION(return_type, name, functionName, params) \
+    inline return_type (*name) params = (return_type (*) params) GetExportFunction("libil2cpp.so", functionName);
 
 
 namespace Il2Cpp{
     namespace Symbols{
-        EXPORT_FUNCTION(void*, il2cpp_domain_get, ());
-        EXPORT_FUNCTION(const void**, il2cpp_domain_get_assemblies, (const void * domain, size_t * size));
-        EXPORT_FUNCTION(const void*, il2cpp_assembly_get_image, (const void * assembly));
-        EXPORT_FUNCTION(size_t, il2cpp_image_get_class_count, (const void* image));
-        EXPORT_FUNCTION(const char*, il2cpp_image_get_name, (const void * image));
-        EXPORT_FUNCTION(const void*, il2cpp_image_get_class, (const void * image, size_t index));
-        EXPORT_FUNCTION(const char*, il2cpp_class_get_name, (void * klass));
-        EXPORT_FUNCTION(const char*, il2cpp_class_get_namespace, (void * klass));
-        EXPORT_FUNCTION(const void*, il2cpp_class_get_methods, (void * klass, void* *iter));
-        EXPORT_FUNCTION(const void*, il2cpp_method_get_return_type, (const void * method));
-        EXPORT_FUNCTION(const char*, il2cpp_method_get_name, (const void * method));
-        EXPORT_FUNCTION(void*, il2cpp_class_from_type, (const void * type));
-        EXPORT_FUNCTION(int, il2cpp_method_get_param_count, (const void * method));
-        EXPORT_FUNCTION(uint32_t, il2cpp_method_get_flags, (const void * method, uint32_t * iflags));
-        EXPORT_FUNCTION(const void*, il2cpp_method_get_param, (const void * method, uint32_t index));
-        EXPORT_FUNCTION(char*, il2cpp_type_get_name, (const void * type));
-        EXPORT_FUNCTION(const char*, il2cpp_method_get_param_name, (const void * method, uint32_t index));
-        EXPORT_FUNCTION(void*, il2cpp_class_get_fields, (void * klass, void* *iter));
-        EXPORT_FUNCTION(int, il2cpp_field_get_flags, (void * field));
-        EXPORT_FUNCTION(const char*, il2cpp_field_get_name, (void * field));
-        EXPORT_FUNCTION(void*, il2cpp_field_get_parent, (void * field));
-        EXPORT_FUNCTION(size_t, il2cpp_field_get_offset, (void * field));
-        EXPORT_FUNCTION(const void*, il2cpp_field_get_type, (void * field));
-        EXPORT_FUNCTION(void, il2cpp_field_get_value, (void * obj, void * field, void *value));
-        EXPORT_FUNCTION(void*, il2cpp_field_get_value_object, (void * field, void * obj));
-        EXPORT_FUNCTION(bool, il2cpp_field_has_attribute, (void * field, void * attr_class));
-        EXPORT_FUNCTION(void, il2cpp_field_static_get_value, (void * field, void *value));
-        EXPORT_FUNCTION(void, il2cpp_field_static_set_value, (void * field, void *value));
-        EXPORT_FUNCTION(bool, il2cpp_class_is_enum, (const void * klass));
-        EXPORT_FUNCTION(void, il2cpp_field_set_value_object, (void * instance, void * field, void * value));
-        EXPORT_FUNCTION(void*, il2cpp_class_get_parent, (void * klass));
+        EXPORT_FUNCTION(void*, il2cpp_domain_get, symbol_il2cpp_domain_get, ());
+        EXPORT_FUNCTION(const void**, il2cpp_domain_get_assemblies, symbol_il2cpp_domain_get_assemblies, (const void* domain, size_t* size));
+        EXPORT_FUNCTION(const void*, il2cpp_assembly_get_image, symbol_il2cpp_assembly_get_image, (const void* assembly));
+        EXPORT_FUNCTION(size_t, il2cpp_image_get_class_count, symbol_il2cpp_image_get_class_count, (const void* image));
+        EXPORT_FUNCTION(const char*, il2cpp_image_get_name, symbol_il2cpp_image_get_name, (const void* image));
+        EXPORT_FUNCTION(const void*, il2cpp_image_get_class, symbol_il2cpp_image_get_class, (const void* image, size_t index));
+        EXPORT_FUNCTION(const char*, il2cpp_class_get_name, symbol_il2cpp_class_get_name, (void* klass));
+        EXPORT_FUNCTION(const char*, il2cpp_class_get_namespace, symbol_il2cpp_class_get_namespace, (void* klass));
+        EXPORT_FUNCTION(const void*, il2cpp_class_get_methods, symbol_il2cpp_class_get_methods, (void* klass, void** iter));
+        EXPORT_FUNCTION(const void*, il2cpp_method_get_return_type, symbol_il2cpp_method_get_return_type, (const void* method));
+        EXPORT_FUNCTION(const char*, il2cpp_method_get_name, symbol_il2cpp_method_get_name, (const void* method));
+        EXPORT_FUNCTION(void*, il2cpp_class_from_type, symbol_il2cpp_class_from_type, (const void* type));
+        EXPORT_FUNCTION(int, il2cpp_method_get_param_count, symbol_il2cpp_method_get_param_count, (const void* method));
+        EXPORT_FUNCTION(uint32_t, il2cpp_method_get_flags, symbol_il2cpp_method_get_flags, (const void* method, uint32_t* iflags));
+        EXPORT_FUNCTION(const void*, il2cpp_method_get_param, symbol_il2cpp_method_get_param, (const void* method, uint32_t index));
+        EXPORT_FUNCTION(char*, il2cpp_type_get_name, symbol_il2cpp_type_get_name, (const void* type));
+        EXPORT_FUNCTION(const char*, il2cpp_method_get_param_name, symbol_il2cpp_method_get_param_name, (const void* method, uint32_t index));
+        EXPORT_FUNCTION(void*, il2cpp_class_get_fields, symbol_il2cpp_class_get_fields, (void* klass, void** iter));
+        EXPORT_FUNCTION(int, il2cpp_field_get_flags, symbol_il2cpp_field_get_flags, (void* field));
+        EXPORT_FUNCTION(const char*, il2cpp_field_get_name, symbol_il2cpp_field_get_name, (void* field));
+        EXPORT_FUNCTION(void*, il2cpp_field_get_parent, symbol_il2cpp_field_get_parent, (void* field));
+        EXPORT_FUNCTION(size_t, il2cpp_field_get_offset, symbol_il2cpp_field_get_offset, (void* field));
+        EXPORT_FUNCTION(const void*, il2cpp_field_get_type, symbol_il2cpp_field_get_type, (void* field));
+        EXPORT_FUNCTION(void, il2cpp_field_get_value, symbol_il2cpp_field_get_value, (void* obj, void* field, void* value));
+        EXPORT_FUNCTION(void*, il2cpp_field_get_value_object, symbol_il2cpp_field_get_value_object, (void* field, void* obj));
+        EXPORT_FUNCTION(bool, il2cpp_field_has_attribute, symbol_il2cpp_field_has_attribute, (void* field, void* attr_class));
+        EXPORT_FUNCTION(void, il2cpp_field_static_get_value, symbol_il2cpp_field_static_get_value, (void* field, void* value));
+        EXPORT_FUNCTION(void, il2cpp_field_static_set_value, symbol_il2cpp_field_static_set_value, (void* field, void* value));
+        EXPORT_FUNCTION(bool, il2cpp_class_is_enum, symbol_il2cpp_class_is_enum, (const void* klass));
+        EXPORT_FUNCTION(void, il2cpp_field_set_value_object, symbol_il2cpp_field_set_value_object, (void* instance, void* field, void* value));
+        EXPORT_FUNCTION(void*, il2cpp_class_get_parent, symbol_il2cpp_class_get_parent, (void* klass));
+        EXPORT_FUNCTION(bool, il2cpp_method_is_generic, symbol_il2cpp_method_is_generic, (const void* method));
     }// Symbols namespace
 }// Il2Cpp namespace
 
@@ -108,7 +110,7 @@ string GenerateCPPTypeName(const char* typeName){
 }
 
 namespace InternalSettings{
-    bool gameHasThreadCheck;
+    bool gameHasThreadCheck = true;
     bool useManualAssemblies;
 }
 namespace Globals{
@@ -246,9 +248,18 @@ string DumpMethods(const void* klass){
     while (auto method = Il2Cpp::Symbols::il2cpp_class_get_methods(const_cast<void*>(klass), &iter)) {
 
         auto methodName = Il2Cpp::Symbols::il2cpp_method_get_name(method);
+
+        bool isCtor = strcmp(methodName, ".ctor") == 0;
+
         auto returnType = Il2Cpp::Symbols::il2cpp_method_get_return_type(method);
         auto classFromType = Il2Cpp::Symbols::il2cpp_class_from_type(const_cast<void *>(returnType));
         auto returnTypeName = Il2Cpp::Symbols::il2cpp_class_get_name(classFromType);
+
+        if (isCtor) {
+            methodName = Il2Cpp::Symbols::il2cpp_class_get_name(const_cast<void*>(klass));
+            returnTypeName = "";
+        }
+
         auto fixedName = GenerateCPPTypeName(returnTypeName);
 
         auto methodPointer = *(void**) method;
@@ -419,8 +430,6 @@ void* ClassFromNameHook(const void* image, const char* namespaze, const char* na
         if (Config::CallCountType == manualType::classCallCount)
             Globals::callCount++;
 
-        LOGI("Call Count: %i", Globals::callCount);
-
         if (Globals::callCount == Globals::callsBeforeLoad && !Globals::hasDumped) {
             Globals::hasDumped = true;
             DumpThread();
@@ -458,25 +467,29 @@ void Init(){
 
     if(InternalSettings::gameHasThreadCheck) goto threadCheck;
 
+    LOGI("Loading assemblies");
+
     SetupAssemblies();
+    LOGI("Dumping");
     DumpThread();
 
     return;
 
     threadCheck:
+    LOGI("Thread bypass");
     InitThreadCheckBypass();
 }
 
 __attribute__ ((constructor))
 void lib_main(){
     std::thread([](){
+        LOGI("Loading libil2cpp");
         do{
-            Globals::libIl2cppHandle = dlopen("libil2cpp.so", RTLD_LAZY);
+            map = KittyMemory::getElfBaseMap("libil2cpp.so");
             sleep(1);
-        }while (Globals::libIl2cppHandle == nullptr);
+        }while (!map.isValid() || !map.isValidELF());
 
-        map = KittyMemory::getElfBaseMap("libil2cpp.so");
-
+        Globals::libIl2cppHandle = dlopen("libil2cpp.so", RTLD_LAZY);
         Init();
 
     }).detach();
