@@ -7,10 +7,10 @@
 #include "android/log.h"
 #include "flags.h"
 #include "Dobby/include/dobby.h"
+#include "KittyInclude.hpp"
 #include "sstream"
 #include "unistd.h"
-#include "KittyMemory/KittyMemory/KittyInclude.hpp"
-#include "il2cpp-symbols.hpp"
+#include "Il2Cpp.hpp"
 
 using namespace std;
 
@@ -20,50 +20,6 @@ using namespace std;
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, _Tag, __VA_ARGS__)
 
 ProcMap map;
-
-void* GetExportFunction(const char* handle, const char* function){
-    return dlsym(dlopen(handle, RTLD_LAZY), function);
-}
-#define EXPORT_FUNCTION(return_type, name, functionName, params) \
-    inline return_type (*name) params = (return_type (*) params) GetExportFunction("libil2cpp.so", functionName);
-
-
-namespace Il2Cpp{
-    namespace Symbols{
-        EXPORT_FUNCTION(void*, il2cpp_domain_get, symbol_il2cpp_domain_get, ());
-        EXPORT_FUNCTION(const void**, il2cpp_domain_get_assemblies, symbol_il2cpp_domain_get_assemblies, (const void* domain, size_t* size));
-        EXPORT_FUNCTION(const void*, il2cpp_assembly_get_image, symbol_il2cpp_assembly_get_image, (const void* assembly));
-        EXPORT_FUNCTION(size_t, il2cpp_image_get_class_count, symbol_il2cpp_image_get_class_count, (const void* image));
-        EXPORT_FUNCTION(const char*, il2cpp_image_get_name, symbol_il2cpp_image_get_name, (const void* image));
-        EXPORT_FUNCTION(const void*, il2cpp_image_get_class, symbol_il2cpp_image_get_class, (const void* image, size_t index));
-        EXPORT_FUNCTION(const char*, il2cpp_class_get_name, symbol_il2cpp_class_get_name, (void* klass));
-        EXPORT_FUNCTION(const char*, il2cpp_class_get_namespace, symbol_il2cpp_class_get_namespace, (void* klass));
-        EXPORT_FUNCTION(const void*, il2cpp_class_get_methods, symbol_il2cpp_class_get_methods, (void* klass, void** iter));
-        EXPORT_FUNCTION(const void*, il2cpp_method_get_return_type, symbol_il2cpp_method_get_return_type, (const void* method));
-        EXPORT_FUNCTION(const char*, il2cpp_method_get_name, symbol_il2cpp_method_get_name, (const void* method));
-        EXPORT_FUNCTION(void*, il2cpp_class_from_type, symbol_il2cpp_class_from_type, (const void* type));
-        EXPORT_FUNCTION(int, il2cpp_method_get_param_count, symbol_il2cpp_method_get_param_count, (const void* method));
-        EXPORT_FUNCTION(uint32_t, il2cpp_method_get_flags, symbol_il2cpp_method_get_flags, (const void* method, uint32_t* iflags));
-        EXPORT_FUNCTION(const void*, il2cpp_method_get_param, symbol_il2cpp_method_get_param, (const void* method, uint32_t index));
-        EXPORT_FUNCTION(char*, il2cpp_type_get_name, symbol_il2cpp_type_get_name, (const void* type));
-        EXPORT_FUNCTION(const char*, il2cpp_method_get_param_name, symbol_il2cpp_method_get_param_name, (const void* method, uint32_t index));
-        EXPORT_FUNCTION(void*, il2cpp_class_get_fields, symbol_il2cpp_class_get_fields, (void* klass, void** iter));
-        EXPORT_FUNCTION(int, il2cpp_field_get_flags, symbol_il2cpp_field_get_flags, (void* field));
-        EXPORT_FUNCTION(const char*, il2cpp_field_get_name, symbol_il2cpp_field_get_name, (void* field));
-        EXPORT_FUNCTION(void*, il2cpp_field_get_parent, symbol_il2cpp_field_get_parent, (void* field));
-        EXPORT_FUNCTION(size_t, il2cpp_field_get_offset, symbol_il2cpp_field_get_offset, (void* field));
-        EXPORT_FUNCTION(const void*, il2cpp_field_get_type, symbol_il2cpp_field_get_type, (void* field));
-        EXPORT_FUNCTION(void, il2cpp_field_get_value, symbol_il2cpp_field_get_value, (void* obj, void* field, void* value));
-        EXPORT_FUNCTION(void*, il2cpp_field_get_value_object, symbol_il2cpp_field_get_value_object, (void* field, void* obj));
-        EXPORT_FUNCTION(bool, il2cpp_field_has_attribute, symbol_il2cpp_field_has_attribute, (void* field, void* attr_class));
-        EXPORT_FUNCTION(void, il2cpp_field_static_get_value, symbol_il2cpp_field_static_get_value, (void* field, void* value));
-        EXPORT_FUNCTION(void, il2cpp_field_static_set_value, symbol_il2cpp_field_static_set_value, (void* field, void* value));
-        EXPORT_FUNCTION(bool, il2cpp_class_is_enum, symbol_il2cpp_class_is_enum, (const void* klass));
-        EXPORT_FUNCTION(void, il2cpp_field_set_value_object, symbol_il2cpp_field_set_value_object, (void* instance, void* field, void* value));
-        EXPORT_FUNCTION(void*, il2cpp_class_get_parent, symbol_il2cpp_class_get_parent, (void* klass));
-        EXPORT_FUNCTION(bool, il2cpp_method_is_generic, symbol_il2cpp_method_is_generic, (const void* method));
-    }// Symbols namespace
-}// Il2Cpp namespace
 
 string GenerateCPPTypeName(const char* typeName){
     if (strcmp(typeName, "Void") == 0 || strcmp(typeName, "System.Void") == 0) {
@@ -111,26 +67,13 @@ string GenerateCPPTypeName(const char* typeName){
 
 namespace InternalSettings{
     bool gameHasThreadCheck;
-    bool useManualAssemblies;
 }
 namespace Globals{
     void* libIl2cppHandle = nullptr;
     size_t assemblyCount;
     const void ** assemblies;
-    vector<const void*> manualImages;
-    int callsBeforeLoad = 127;
-    int callCount = 0;
     bool hasDumped = false;
 }
-enum manualType{
-    classCallCount,
-    imageCallCount
-};
-namespace Config{
-    manualType CallCountType = manualType::imageCallCount;
-    bool separateDumps = false;
-}
-
 
 std::string getMethodModifier(uint32_t flags) {
     std::stringstream outPut;
@@ -182,19 +125,19 @@ string DumpFields(const void *klass){
     stringstream output;
 
     void *iter = nullptr;
-    while (auto field = Il2Cpp::Symbols::il2cpp_class_get_fields(const_cast<void*>(klass), &iter)) {
+    while (auto field = Il2Cpp::il2cpp_class_get_fields(const_cast<void*>(klass), &iter)) {
 
         output << "\t\t";
 
-        auto fieldName = Il2Cpp::Symbols::il2cpp_field_get_name(field);
+        auto fieldName = Il2Cpp::il2cpp_field_get_name(field);
 
-        auto type = Il2Cpp::Symbols::il2cpp_field_get_type(field);
+        auto type = Il2Cpp::il2cpp_field_get_type(field);
 
-        auto isEnum = Il2Cpp::Symbols::il2cpp_class_is_enum(klass);
+        auto isEnum = Il2Cpp::il2cpp_class_is_enum(klass);
 
-        auto field_class = Il2Cpp::Symbols::il2cpp_class_from_type(type);
+        auto field_class = Il2Cpp::il2cpp_class_from_type(type);
 
-        auto attrs = Il2Cpp::Symbols::il2cpp_field_get_flags(field);
+        auto attrs = Il2Cpp::il2cpp_field_get_flags(field);
         auto access = attrs & FIELD_ATTRIBUTE_FIELD_ACCESS_MASK;
         switch (access) {
             case FIELD_ATTRIBUTE_PRIVATE:
@@ -225,15 +168,15 @@ string DumpFields(const void *klass){
             }
         }
 
-        auto fixedName = GenerateCPPTypeName(Il2Cpp::Symbols::il2cpp_class_get_name(field_class));
+        auto fixedName = GenerateCPPTypeName(Il2Cpp::il2cpp_class_get_name(field_class));
 
         if (attrs & FIELD_ATTRIBUTE_LITERAL && isEnum) {
             uint64_t val = 0;
-            Il2Cpp::Symbols::il2cpp_field_static_get_value(field, &val);
+            Il2Cpp::il2cpp_field_static_get_value(field, &val);
             output << fieldName << " = " << std::dec << val << "\n";
         }
         else{
-            output << fixedName << " " << fieldName << "; // 0x" << std::hex << Il2Cpp::Symbols::il2cpp_field_get_offset(field) << "\n";
+            output << fixedName << " " << fieldName << "; // 0x" << std::hex << Il2Cpp::il2cpp_field_get_offset(field) << "\n";
         }
     }
 
@@ -245,18 +188,18 @@ string DumpMethods(const void* klass){
 
     void *iter = nullptr;
 
-    while (auto method = Il2Cpp::Symbols::il2cpp_class_get_methods(const_cast<void*>(klass), &iter)) {
+    while (auto method = Il2Cpp::il2cpp_class_get_methods(const_cast<void*>(klass), &iter)) {
 
-        auto methodName = Il2Cpp::Symbols::il2cpp_method_get_name(method);
+        auto methodName = Il2Cpp::il2cpp_method_get_name(method);
 
         bool isCtor = strcmp(methodName, ".ctor") == 0;
 
-        auto returnType = Il2Cpp::Symbols::il2cpp_method_get_return_type(method);
-        auto classFromType = Il2Cpp::Symbols::il2cpp_class_from_type(const_cast<void *>(returnType));
-        auto returnTypeName = Il2Cpp::Symbols::il2cpp_class_get_name(classFromType);
+        auto returnType = Il2Cpp::il2cpp_method_get_return_type(method);
+        auto classFromType = Il2Cpp::il2cpp_class_from_type(const_cast<void *>(returnType));
+        auto returnTypeName = Il2Cpp::il2cpp_class_get_name(classFromType);
 
         if (isCtor) {
-            methodName = Il2Cpp::Symbols::il2cpp_class_get_name(const_cast<void*>(klass));
+            methodName = Il2Cpp::il2cpp_class_get_name(const_cast<void*>(klass));
             returnTypeName = "";
         }
 
@@ -268,16 +211,16 @@ string DumpMethods(const void* klass){
         uint64_t offset = va - map.startAddress;
 
         uint32_t iflags = 0;
-        auto flags = Il2Cpp::Symbols::il2cpp_method_get_flags(method, &iflags);
+        auto flags = Il2Cpp::il2cpp_method_get_flags(method, &iflags);
         stringstream argStream;
 
-        int paramCount = Il2Cpp::Symbols::il2cpp_method_get_param_count(method);
+        int paramCount = Il2Cpp::il2cpp_method_get_param_count(method);
         for (int i = 0; i < paramCount; i++){
-            auto parameterType = Il2Cpp::Symbols::il2cpp_method_get_param(const_cast<void *>(method), i);
+            auto parameterType = Il2Cpp::il2cpp_method_get_param(const_cast<void *>(method), i);
 
-            char* parameterTypeName = Il2Cpp::Symbols::il2cpp_type_get_name(parameterType);
+            char* parameterTypeName = Il2Cpp::il2cpp_type_get_name(parameterType);
 
-            auto paramName = Il2Cpp::Symbols::il2cpp_method_get_param_name(method, i);
+            auto paramName = Il2Cpp::il2cpp_method_get_param_name(method, i);
 
             argStream << parameterTypeName << " " << paramName;
             if(i < paramCount - 1) {
@@ -297,34 +240,34 @@ string DumpMethods(const void* klass){
 
 string DumpImage(const void* image){
     stringstream output;
-    auto classCount = Il2Cpp::Symbols::il2cpp_image_get_class_count(image);
+    auto classCount = Il2Cpp::il2cpp_image_get_class_count(image);
     for(int i = 0; i < classCount; ++i){
-        auto klass = Il2Cpp::Symbols::il2cpp_image_get_class(image, i);
-        auto namespaze = Il2Cpp::Symbols::il2cpp_class_get_namespace(const_cast<void*>(klass));
-        auto name = Il2Cpp::Symbols::il2cpp_class_get_name(const_cast<void*>(klass));
+        auto klass = Il2Cpp::il2cpp_image_get_class(image, i);
+        auto namespaze = Il2Cpp::il2cpp_class_get_namespace(const_cast<void*>(klass));
+        auto name = Il2Cpp::il2cpp_class_get_name(const_cast<void*>(klass));
         auto methods = DumpMethods(klass);
         auto fields = DumpFields(klass);
 
         string type;
-        if(Il2Cpp::Symbols::il2cpp_class_is_enum(klass)){
+        if(Il2Cpp::il2cpp_class_is_enum(klass)){
             type = "enum ";
         }
         else{
             type = "class ";
         }
 
-        auto parent = Il2Cpp::Symbols::il2cpp_class_get_parent(const_cast<void*>(klass));
+        auto parent = Il2Cpp::il2cpp_class_get_parent(const_cast<void*>(klass));
         bool hasParent = (parent != nullptr);
 
 
-        output << "//" << Il2Cpp::Symbols::il2cpp_image_get_name(image);
+        output << "//" << Il2Cpp::il2cpp_image_get_name(image);
 
         output <<
         "\n" << "namespace " << namespaze << "\n{\n" <<
         "\t" << type << name;
 
         if(hasParent){
-            output << " : " << Il2Cpp::Symbols::il2cpp_class_get_name(parent);
+            output << " : " << Il2Cpp::il2cpp_class_get_name(parent);
         }
 
         output << "\n\t{\n" <<
@@ -337,19 +280,15 @@ string DumpImage(const void* image){
 }
 
 const void* GetImageAtCount(size_t count){
-    if(!InternalSettings::useManualAssemblies){
-        auto assembly = Globals::assemblies[count];
-        if(!assembly){
-            LOGE("Assembly Not Found At Count %i", count);
-            return nullptr;
-        }
-
-        auto image = Il2Cpp::Symbols::il2cpp_assembly_get_image(assembly);
-
-        return image;
-
+    auto assembly = Globals::assemblies[count];
+    if(!assembly){
+        LOGE("Assembly Not Found At Count %i", static_cast<int>(count));
+        return nullptr;
     }
-    return Globals::manualImages[count];
+
+    auto image = Il2Cpp::il2cpp_assembly_get_image(assembly);
+
+    return image;
 }
 
 const char *GetPackageName() {
@@ -363,8 +302,8 @@ const char *GetPackageName() {
 }
 
 void SetupAssemblies(){
-    auto domain = Il2Cpp::Symbols::il2cpp_domain_get();
-    auto assemblies = Il2Cpp::Symbols::il2cpp_domain_get_assemblies(domain, &Globals::assemblyCount);
+    auto domain = Il2Cpp::il2cpp_domain_get();
+    auto assemblies = Il2Cpp::il2cpp_domain_get_assemblies(domain, &Globals::assemblyCount);
     Globals::assemblies = assemblies;
 }
 
@@ -373,9 +312,6 @@ void DumpThread(){
     thread([](){
 
         LOGI("DUMPING...");
-        if(InternalSettings::useManualAssemblies){
-            LOGI("USING MANUAL ASSEMBLIES");
-        }
         if(InternalSettings::gameHasThreadCheck){
             LOGI("GAME HAS THREAD CHECK");
         }
@@ -384,7 +320,6 @@ void DumpThread(){
         stringstream dumpStream;
 
         imagesStream << "Game Has Thread Check: " << InternalSettings::gameHasThreadCheck << "\n";
-        imagesStream << "Game Requires Manual Assemblies: " << InternalSettings::useManualAssemblies << "\n\n";
 
         LOGI("ASSEMBLY COUNT: %i", Globals::assemblyCount);
 
@@ -395,7 +330,7 @@ void DumpThread(){
                 continue;
             }
 
-            imagesStream << "Image " << i << ": " << Il2Cpp::Symbols::il2cpp_image_get_name(currentImage) << "\n";
+            imagesStream << "Image " << i << ": " << Il2Cpp::il2cpp_image_get_name(currentImage) << "\n";
 
             dumpStream << DumpImage(currentImage);
         }
@@ -417,27 +352,8 @@ void DumpThread(){
 
 void* (*ClassFromName)(const void*, const char*, const char*) = nullptr;
 void* ClassFromNameHook(const void* image, const char* namespaze, const char* name){
-
-    if (InternalSettings::useManualAssemblies) {
-        if (!count(Globals::manualImages.begin(), Globals::manualImages.end(), image)) {
-            Globals::manualImages.push_back(image);
-            Globals::assemblyCount++;
-
-            if (Config::CallCountType == manualType::imageCallCount)
-                Globals::callCount++;
-        }
-
-        if (Config::CallCountType == manualType::classCallCount)
-            Globals::callCount++;
-
-        if (Globals::callCount == Globals::callsBeforeLoad && !Globals::hasDumped) {
-            Globals::hasDumped = true;
-            DumpThread();
-        }
-        return ClassFromName(image, namespaze, name);
-    }
-
     DumpThread();
+    DobbyDestroy(reinterpret_cast<void*>(ClassFromNameHook));
     return ClassFromName(image, namespaze, name);
 }
 
@@ -457,26 +373,10 @@ void InitThreadCheckBypass(){
 
 void Init(){
 
-    InternalSettings::useManualAssemblies = !Il2Cpp::Symbols::il2cpp_domain_get_assemblies;
-
-    auto domain = Il2Cpp::Symbols::il2cpp_domain_get();
-
-    if(InternalSettings::useManualAssemblies) goto threadCheck;
+    auto domain = Il2Cpp::il2cpp_domain_get();
 
     InternalSettings::gameHasThreadCheck = domain == nullptr;
 
-    if(InternalSettings::gameHasThreadCheck) goto threadCheck;
-
-    LOGI("Loading assemblies");
-
-    SetupAssemblies();
-    LOGI("Dumping");
-    DumpThread();
-
-    return;
-
-    threadCheck:
-    LOGI("Thread bypass");
     InitThreadCheckBypass();
 }
 

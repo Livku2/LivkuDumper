@@ -3,14 +3,27 @@ plugins {
 }
 
 android {
-    namespace 'com.livku.livkudumpergui'
+    namespace 'com.livku.livkudumper'
     compileSdk 34
 
     defaultConfig {
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
+        ndk{
+            abiFilters "arm64-v8a"
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=gnu++20",
+                         "-Wno-deprecated-volatile",
+                         "-Wno-return-type",
+                         "-Wno-dangling-else",
+                         "-Wno-volatile"
+            }
+        }
     }
 
     compileOptions {
@@ -30,6 +43,7 @@ android {
         viewBinding false
         buildConfig false
     }
+    ndkVersion '27.0.12077973'
 }
 
 afterEvaluate {

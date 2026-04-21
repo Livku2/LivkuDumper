@@ -31,6 +31,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
         Dobby/include
+        Config
         KittyMemory/KittyMemory)
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
