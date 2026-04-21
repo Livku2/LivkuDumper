@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FullStrayedRecodeAgain"
+rootProject.name = "LivkuDumper"
 include ':app'
