@@ -390,6 +390,11 @@ void lib_main(){
         }while (!map.isValid() || !map.isValidELF());
 
         Globals::libIl2cppHandle = dlopen("libil2cpp.so", RTLD_LAZY);
+        bool il2cppInitialised = false;
+        do
+        {
+            il2cppInitialised = Il2Cpp::Init(Globals::libIl2cppHandle);
+        }while (!il2cppInitialised);
         Init();
 
     }).detach();

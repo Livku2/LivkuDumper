@@ -8,38 +8,38 @@ inline void* GetExportFunction(void* handle, const char* function) {
 class Il2Cpp
 {
 public:
-    static void* (*il2cpp_domain_get)();
-    static const void** (*il2cpp_domain_get_assemblies)(const void*, size_t*);
-    static const void* (*il2cpp_assembly_get_image)(const void*);
-    static size_t (*il2cpp_image_get_class_count)(const void*);
-    static const char* (*il2cpp_image_get_name)(const void*);
-    static const void* (*il2cpp_image_get_class)(const void*, size_t);
-    static const char* (*il2cpp_class_get_name)(void*);
-    static const char* (*il2cpp_class_get_namespace)(void*);
-    static const void* (*il2cpp_class_get_methods)(void*, void**);
-    static const void* (*il2cpp_method_get_return_type)(const void*);
-    static const char* (*il2cpp_method_get_name)(const void*);
-    static void* (*il2cpp_class_from_type)(const void*);
-    static int (*il2cpp_method_get_param_count)(const void*);
-    static uint32_t (*il2cpp_method_get_flags)(const void*, uint32_t*);
-    static const void* (*il2cpp_method_get_param)(const void*, uint32_t);
-    static char* (*il2cpp_type_get_name)(const void*);
-    static const char* (*il2cpp_method_get_param_name)(const void*, uint32_t);
-    static void* (*il2cpp_class_get_fields)(void*, void**);
-    static int (*il2cpp_field_get_flags)(void*);
-    static const char* (*il2cpp_field_get_name)(void*);
-    static void* (*il2cpp_field_get_parent)(void*);
-    static size_t (*il2cpp_field_get_offset)(void*);
-    static const void* (*il2cpp_field_get_type)(void*);
-    static void (*il2cpp_field_get_value)(void*, void*, void*);
-    static void* (*il2cpp_field_get_value_object)(void*, void*);
-    static bool (*il2cpp_field_has_attribute)(void*, void*);
-    static void (*il2cpp_field_static_get_value)(void*, void*);
-    static void (*il2cpp_field_static_set_value)(void*, void*);
-    static bool (*il2cpp_class_is_enum)(const void*);
-    static void (*il2cpp_field_set_value_object)(void*, void*, void*);
-    static void* (*il2cpp_class_get_parent)(void*);
-    static bool (*il2cpp_method_is_generic)(const void*);
+    static inline void* (*il2cpp_domain_get)();
+    static inline const void** (*il2cpp_domain_get_assemblies)(const void*, size_t*);
+    static inline const void* (*il2cpp_assembly_get_image)(const void*);
+    static inline size_t (*il2cpp_image_get_class_count)(const void*);
+    static inline const char* (*il2cpp_image_get_name)(const void*);
+    static inline const void* (*il2cpp_image_get_class)(const void*, size_t);
+    static inline const char* (*il2cpp_class_get_name)(void*);
+    static inline const char* (*il2cpp_class_get_namespace)(void*);
+    static inline const void* (*il2cpp_class_get_methods)(void*, void**);
+    static inline const void* (*il2cpp_method_get_return_type)(const void*);
+    static inline const char* (*il2cpp_method_get_name)(const void*);
+    static inline void* (*il2cpp_class_from_type)(const void*);
+    static inline int (*il2cpp_method_get_param_count)(const void*);
+    static inline uint32_t (*il2cpp_method_get_flags)(const void*, uint32_t*);
+    static inline const void* (*il2cpp_method_get_param)(const void*, uint32_t);
+    static inline char* (*il2cpp_type_get_name)(const void*);
+    static inline const char* (*il2cpp_method_get_param_name)(const void*, uint32_t);
+    static inline void* (*il2cpp_class_get_fields)(void*, void**);
+    static inline int (*il2cpp_field_get_flags)(void*);
+    static inline const char* (*il2cpp_field_get_name)(void*);
+    static inline void* (*il2cpp_field_get_parent)(void*);
+    static inline size_t (*il2cpp_field_get_offset)(void*);
+    static inline const void* (*il2cpp_field_get_type)(void*);
+    static inline void (*il2cpp_field_get_value)(void*, void*, void*);
+    static inline void* (*il2cpp_field_get_value_object)(void*, void*);
+    static inline bool (*il2cpp_field_has_attribute)(void*, void*);
+    static inline void (*il2cpp_field_static_get_value)(void*, void*);
+    static inline void (*il2cpp_field_static_set_value)(void*, void*);
+    static inline bool (*il2cpp_class_is_enum)(const void*);
+    static inline void (*il2cpp_field_set_value_object)(void*, void*, void*);
+    static inline void* (*il2cpp_class_get_parent)(void*);
+    static inline bool (*il2cpp_method_is_generic)(const void*);
 
     static bool Init(void* handle)
     {
@@ -72,7 +72,7 @@ public:
         il2cpp_class_get_methods = reinterpret_cast<decltype(il2cpp_class_get_methods)>(
             GetExportFunction(handle, "il2cpp_class_get_methods"));
 
-        il2cpp_method_get_return_type = reinterpret_cast<decltype(il22cpp_method_get_return_type)>(
+        il2cpp_method_get_return_type = reinterpret_cast<decltype(il2cpp_method_get_return_type)>(
             GetExportFunction(handle, "il2cpp_method_get_return_type"));
 
         il2cpp_method_get_name = reinterpret_cast<decltype(il2cpp_method_get_name)>(
