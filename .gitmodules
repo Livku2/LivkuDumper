@@ -4,3 +4,6 @@
 [submodule "app/src/main/cpp/KittyMemory"]
 	path = app/src/main/cpp/KittyMemory
 	url = https://github.com/MJx0/KittyMemory
+[submodule "app/src/main/cpp/json"]
+	path = app/src/main/cpp/json
+	url = https://github.com/nlohmann/json

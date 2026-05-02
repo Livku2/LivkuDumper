@@ -310,7 +310,7 @@ void SetupAssemblies(){
 //Thread for bypass
 void DumpThread(){
     thread([](){
-
+        SetupAssemblies();
         LOGI("DUMPING...");
         if(InternalSettings::gameHasThreadCheck){
             LOGI("GAME HAS THREAD CHECK");
