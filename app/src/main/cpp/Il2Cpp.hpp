@@ -2,7 +2,12 @@
 #include "Il2CppSymbols.hpp"
 
 inline void* GetExportFunction(void* handle, const char* function) {
-    return sym(handle, function);
+    auto add = sym(handle, function);
+    if (!add)
+    {
+        LOGE("%s not found!", function);
+    }
+    return add;
 }
 
 class Il2Cpp
