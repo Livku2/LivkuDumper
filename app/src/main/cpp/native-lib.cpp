@@ -304,45 +304,60 @@ void SetupAssemblies(){
 
 //Thread for bypass
 void DumpThread(){
-    thread([](){
-        SetupAssemblies();
-        LOGI("DUMPING...");
-        if(InternalSettings::gameHasThreadCheck){
-            LOGI("GAME HAS THREAD CHECK");
+    LOGI("DumpThread: started");
+    SetupAssemblies();
+
+    if (!Globals::assemblies) {
+        LOGE("DumpThread: assemblies are null, aborting dump");
+        return;
+    }
+
+    if (InternalSettings::gameHasThreadCheck)
+        LOGI("DumpThread: game has thread check — hook path active");
+
+    stringstream imagesStream;
+    stringstream dumpStream;
+    imagesStream << "Game Has Thread Check: " << InternalSettings::gameHasThreadCheck << "\n";
+
+    LOGI("DumpThread: processing %zu assembly/assemblies", Globals::assemblyCount);
+
+    int successCount = 0, failCount = 0;
+    for (int i = 0; i < (int)Globals::assemblyCount; ++i) {
+        LOGI("DumpThread: processing assembly %d / %zu", i + 1, Globals::assemblyCount);
+        auto currentImage = GetImageAtCount(i);
+        if (!currentImage) {
+            LOGE("DumpThread: image is null at index %d, skipping", i);
+            ++failCount;
+            continue;
         }
 
-        stringstream imagesStream;
-        stringstream dumpStream;
+        auto imgName = Il2Cpp::il2cpp_image_get_name(currentImage);
+        LOGI("DumpThread: dumping image '%s'", imgName);
+        imagesStream << "Image " << i << ": " << imgName << "\n";
+        dumpStream << DumpImage(currentImage);
+        ++successCount;
+    }
 
-        imagesStream << "Game Has Thread Check: " << InternalSettings::gameHasThreadCheck << "\n";
+    LOGI("DumpThread: dump complete — %d succeeded, %d failed", successCount, failCount);
 
-        LOGI("ASSEMBLY COUNT: %i", Globals::assemblyCount);
+    stringstream fullStream;
+    fullStream << imagesStream.str() << dumpStream.str();
 
-        for(int i = 0; i < Globals::assemblyCount; ++i){
-            auto currentImage = GetImageAtCount(i);
-            if(!currentImage){
-                LOGE("Image Is Nullptr At Count %i", i);
-                continue;
-            }
+    auto packageName = GetPackageName();
+    auto directory   = std::string("/storage/emulated/0/Android/data/")
+                           .append(packageName)
+                           .append("/dump.cs");
 
-            imagesStream << "Image " << i << ": " << Il2Cpp::il2cpp_image_get_name(currentImage) << "\n";
+    LOGI("DumpThread: writing output to '%s'", directory.c_str());
+    std::ofstream outputStream(directory);
+    if (!outputStream.is_open()) {
+        LOGE("DumpThread: failed to open output file '%s'", directory.c_str());
+        return;
+    }
+    outputStream << fullStream.str();
+    outputStream.close();
+    LOGI("DumpThread: dump written successfully to '%s'", directory.c_str());
 
-            dumpStream << DumpImage(currentImage);
-        }
-
-        stringstream fullStream;
-        fullStream << imagesStream.str() << dumpStream.str();
-
-        auto directory = std::string("/storage/emulated/0/Android/data/").append(
-                GetPackageName()).append("/dump.cs");
-
-        std::ofstream outputStream(directory);
-        outputStream << fullStream.str();
-        outputStream.close();
-
-        LOGI("Dump Finished");
-
-    }).detach();
 }
 
 void* (*ClassFromName)(const void*, const char*, const char*) = nullptr;
@@ -358,7 +373,7 @@ void InitThreadCheckBypass(){
         return;
     }
 
-    auto il2cpp_class_from_name = dlsym(Globals::libIl2cppHandle, "il2cpp_class_from_name");
+    auto il2cpp_class_from_name = sym(Globals::libIl2cppHandle, "il2cpp_class_from_name");
     if(!il2cpp_class_from_name){
         LOGE("il2cpp_class_from_name is null");
         return;
@@ -384,7 +399,7 @@ void lib_main(){
             sleep(1);
         }while (!map.isValid() || !map.isValidELF());
 
-        Globals::libIl2cppHandle = dlopen("libil2cpp.so", RTLD_LAZY);
+        Globals::libIl2cppHandle = open("libil2cpp.so", RTLD_LAZY);
         bool il2cppInitialised = false;
         do
         {
