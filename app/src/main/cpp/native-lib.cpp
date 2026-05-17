@@ -359,12 +359,16 @@ void DumpThread(){
     LOGI("DumpThread: dump written successfully to '%s'", directory.c_str());
 
 }
-
-void* (*ClassFromName)(const void*, const char*, const char*) = nullptr;
-void* ClassFromNameHook(const void* image, const char* namespaze, const char* name){
-    DumpThread();
-    DobbyDestroy(reinterpret_cast<void*>(ClassFromNameHook));
-    return ClassFromName(image, namespaze, name);
+void* hookPtr = nullptr;
+bool donce;
+void* (*OriginalRuntimeInvoke)(const void * method, void *obj, void **params, void **exc) = nullptr;
+void* new_RuntimeInvoke(const void * method, void *obj, void **params, void **exc) {
+    if (!donce) {
+        donce = true;
+        DobbyDestroy(hookPtr);
+        DumpThread();
+    }
+    return OriginalRuntimeInvoke(method, obj, params, exc);
 }
 
 void InitThreadCheckBypass(){
@@ -372,13 +376,18 @@ void InitThreadCheckBypass(){
         LOGE("Handle is null, this should not happen");
         return;
     }
-
-    auto il2cpp_class_from_name = sym(Globals::libIl2cppHandle, "il2cpp_class_from_name");
-    if(!il2cpp_class_from_name){
-        LOGE("il2cpp_class_from_name is null");
+    auto il2cpp_runtime_invoke = sym(Globals::libIl2cppHandle, symbol_il2cpp_runtime_invoke);
+    if (!il2cpp_runtime_invoke) {
+        LOGE("InitThreadCheckBypass: dlsym failed — symbol 'il2cpp_runtime_invoke' not found");
         return;
     }
-    DobbyHook(il2cpp_class_from_name, reinterpret_cast<dobby_dummy_func_t>(ClassFromNameHook), reinterpret_cast<dobby_dummy_func_t*>(&ClassFromName));
+
+    hookPtr = il2cpp_runtime_invoke;
+
+    LOGI("InitThreadCheckBypass: installing hook at %p", il2cpp_runtime_invoke);
+    DobbyHook(il2cpp_runtime_invoke,
+              reinterpret_cast<dobby_dummy_func_t>(new_RuntimeInvoke),
+              reinterpret_cast<dobby_dummy_func_t*>(&OriginalRuntimeInvoke));
 }
 
 void Init(){
