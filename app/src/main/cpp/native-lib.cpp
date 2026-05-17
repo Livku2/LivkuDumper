@@ -286,14 +286,19 @@ const void* GetImageAtCount(size_t count){
     return image;
 }
 
-const char *GetPackageName() {
-    char *application_id[256];
-    FILE *fp = fopen("proc/self/cmdline", "r");
-    if (fp) {
-        fread(application_id, sizeof(application_id), 1, fp);
-        fclose(fp);
+char *GetPackageName() {
+    FILE *fp = fopen("/proc/self/cmdline", "r");
+    if (!fp) {
+        return NULL;
     }
-    return (const char *) application_id;
+    char buffer[256] = {0};
+    size_t bytes_read = fread(buffer, 1, sizeof(buffer) - 1, fp);
+    fclose(fp);
+
+    if (bytes_read == 0) {
+        return NULL;
+    }
+    return strdup(buffer);
 }
 
 void SetupAssemblies(){
